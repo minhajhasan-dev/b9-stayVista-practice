@@ -1,16 +1,23 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import { imageUpload } from "../../../api/utils";
 import AddRoomForm from "../../../components/Form/AddRoomForm";
 import useAuth from "../../../hooks/useAuth";
+import { axiosSecure } from "../../../hooks/useAxiosCommon";
 
 const AddRoom = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const [imagePreview, setImagePreview] = useState();
   //   console.log(imagePreview);
   const [imageText, setImageText] = useState("Upload Image");
   const [dates, setDates] = useState({
     startDate: new Date(),
-    endDate: null,
+    endDate: new Date(),
     key: "selection",
   });
 
@@ -20,9 +27,22 @@ const AddRoom = () => {
     setDates(item.selection);
   };
 
+  const { mutateAsync } = useMutation({
+    mutationFn: async (roomData) => {
+      const { data } = await axiosSecure.post("/room", roomData);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Room added successfully");
+      navigate("/dashboard/my-listings");
+      setLoading(false);
+    },
+  });
+
   // Form handler
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const form = e.target;
     const location = form.location.value;
     const category = form.category.value;
@@ -63,8 +83,12 @@ const AddRoom = () => {
         host,
       };
       console.table(roomData);
+      // post request to server to add room
+      await mutateAsync(roomData);
     } catch (error) {
       console.log(error);
+      toast.error("Failed to add room");
+      setLoading(false);
     }
   };
 
@@ -74,7 +98,10 @@ const AddRoom = () => {
     setImageText(image.name);
   };
   return (
-    <div>
+    <>
+      <Helmet>
+        <title>Add Room | Dashboard </title>
+      </Helmet>
       {/* Form */}
       <AddRoomForm
         dates={dates}
@@ -84,8 +111,9 @@ const AddRoom = () => {
         imagePreview={imagePreview}
         handleImage={handleImage}
         imageText={imageText}
+        loading={loading}
       />
-    </div>
+    </>
   );
 };
 

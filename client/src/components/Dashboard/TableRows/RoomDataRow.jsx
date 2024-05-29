@@ -1,16 +1,15 @@
-import {
-  Description,
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-} from "@headlessui/react";
 import { format } from "date-fns";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import DeleteModal from "../../Modal/DeleteModal";
 
 const RoomDataRow = ({ room, refetch, handleDelete }) => {
-  let [isOpen, setIsOpen] = useState(false);
-
+  // for delete modal
+  const [isOpen, setIsOpen] = useState(false);
+  const closeModal = () => setIsOpen(false);
+  // for update modal
+    const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+    const closeUpdateModal = () => setIsUpdateOpen(false);
   return (
     <tr>
       <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
@@ -57,32 +56,12 @@ const RoomDataRow = ({ room, refetch, handleDelete }) => {
           <span className="relative">Delete</span>
         </button>
         {/* Delete modal */}
-        <>
-          <Dialog
-            open={isOpen}
-            onClose={() => setIsOpen(false)}
-            className="relative z-50"
-          >
-            <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-              <DialogPanel className="max-w-lg space-y-4 border bg-white p-12">
-                <DialogTitle className="font-bold">
-                  Deactivate account
-                </DialogTitle>
-                <Description>
-                  This will permanently deactivate your account
-                </Description>
-                <p>
-                  Are you sure you want to deactivate your account? All of your
-                  data will be permanently removed.
-                </p>
-                <div className="flex gap-4">
-                  <button onClick={() => setIsOpen(false)}>Cancel</button>
-                  <button onClick={() => setIsOpen(false)}>Deactivate</button>
-                </div>
-              </DialogPanel>
-            </div>
-          </Dialog>
-        </>
+        <DeleteModal
+          isOpen={isOpen}
+          closeModal={closeModal}
+          handleDelete={handleDelete}
+          id={room?._id}
+        />
       </td>
       <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
         <span className="relative cursor-pointer inline-block px-3 py-1 font-semibold text-green-900 leading-tight">

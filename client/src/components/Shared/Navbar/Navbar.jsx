@@ -1,13 +1,49 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { AiOutlineMenu } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import avatarImg from "../../../assets/images/placeholder.jpg";
 import useAuth from "../../../hooks/useAuth";
+import useAxiosSecure from "../../../hooks/useAxiosSecure";
+import HostModal from "../../Modal/HostRequestModal";
 import Container from "../Container";
 
 const Navbar = () => {
   const { user, logOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const axiosSecure = useAxiosSecure();
+
+  // for modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const closeModal = () => setIsModalOpen(false);
+
+  // modal handler function
+  const modalHandler = async () => {
+    console.log("I want to be a host!");
+
+    try {
+      const currentUser = {
+        email: user?.email,
+        role: "guest",
+        status: "Requested",
+      };
+      const { data } = await axiosSecure.put(
+        `${import.meta.env.VITE_API_URL}/user`,
+        currentUser
+      );
+      console.log(data);
+      if (data.modifiedCount > 0) {
+        toast.success("Request sent successfully");
+      } else {
+        toast.error("Please! Wait for the admin's approval");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Request failed");
+    } finally {
+      closeModal();
+    }
+  };
 
   return (
     <div className="fixed w-full bg-white z-10 shadow-sm">
@@ -29,15 +65,22 @@ const Navbar = () => {
               <div className="flex flex-row items-center gap-3">
                 {/* Become A Host btn */}
                 <div className="hidden md:block">
-                  {!user && (
+                  {user && (
                     <button
                       disabled={!user}
+                      onClick={() => setIsModalOpen(true)}
                       className="disabled:cursor-not-allowed cursor-pointer hover:bg-neutral-100 py-3 px-4 text-sm font-semibold rounded-full  transition"
                     >
                       Host your home
                     </button>
                   )}
                 </div>
+                {/* Modal */}
+                <HostModal
+                  isOpen={isModalOpen}
+                  closeModal={closeModal}
+                  modalHandler={modalHandler}
+                />
                 {/* Dropdown btn */}
                 <div
                   onClick={() => setIsOpen(!isOpen)}
